@@ -1,12 +1,12 @@
-const repo = require('./repository');
-const Response = require('../helper/responseStatus');
+import repo from './repository.js';
+import Response from '../helper/responseStatus.js';
 
 const listBlogs = async (current = 1, limit = 10) => {
   const page = Math.max(Number(current), 1);
   const perPage = Math.max(Number(limit), 1);
 
   const blogs = await repo.findAll();
-  console.log("Blogs : ", blogs);
+  console.log('Blogs : ', blogs);
   const total = blogs.length;
 
   if (total === 0) {
@@ -15,7 +15,6 @@ const listBlogs = async (current = 1, limit = 10) => {
 
   const startIndex = (page - 1) * perPage;
   const paginatedBlogs = blogs.slice(startIndex, startIndex + perPage);
-  console.l
 
   const data = {
     list: paginatedBlogs,
@@ -70,10 +69,12 @@ const deleteBlog = async (id) => {
   return Response.OK(blog, 'Blog deleted successfully');
 };
 
-module.exports = {
+const logic = {
   listBlogs,
   getBlog,
   createBlog,
   updateBlog,
   deleteBlog,
 };
+
+export default logic;

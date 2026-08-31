@@ -2,6 +2,7 @@
   "name": "intern_userService_js",
   "version": "1.0.0",
   "description": "JavaScript version of intern_userService",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

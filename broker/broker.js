@@ -1,6 +1,6 @@
-const { ServiceBroker } = require('moleculer');
-const dotenv = require('dotenv');
-const config = require('../config/config');
+import { ServiceBroker } from 'moleculer';
+import dotenv from 'dotenv';
+import config from '../config/config.js';
 
 dotenv.config();
 
@@ -47,4 +47,4 @@ const theBroker = new ServiceBroker({
   },
 });
 
-module.exports = theBroker;
+export default theBroker;

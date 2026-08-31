@@ -1,5 +1,5 @@
-const mysql = require('mysql2/promise');
-const config = require('../config/config');
+import mysql from 'mysql2/promise';
+import config from '../config/config.js';
 
 const pool = mysql.createPool({
   connectionLimit: 200,
@@ -62,5 +62,5 @@ process.on('SIGTERM', async () => {
 
 verifyConnection();
 
-module.exports = pool;
+export default pool;
 

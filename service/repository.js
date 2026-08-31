@@ -1,4 +1,4 @@
-const pool = require('../helper/dbConnect');
+import pool from '../helper/dbConnect.js';
 
 const findAll = async () => {
   let connection;
@@ -116,7 +116,7 @@ const test = () => {
   console.log('This is test function in blog.repository.js');
 };
 
-module.exports = {
+const repository = {
   findAll,
   findById,
   create,
@@ -124,3 +124,5 @@ module.exports = {
   remove,
   test,
 };
+
+export default repository;

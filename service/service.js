@@ -1,5 +1,5 @@
-const logic = require('./logic');
-const Response = require('../helper/responseStatus');
+import logic from './logic.js';
+import Response from '../helper/responseStatus.js';
 
 const blogService = {
   name: 'blog',
@@ -93,4 +93,4 @@ const blogService = {
   },
 };
 
-module.exports = blogService;
+export default blogService;

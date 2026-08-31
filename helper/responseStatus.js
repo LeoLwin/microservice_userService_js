@@ -85,7 +85,7 @@ const DEADLINE_EXCEEDED = (message) => ({
   message: message || 'Request deadline exceeded',
 });
 
-module.exports = {
+const responseStatus = {
   OK,
   SEE_OTHER,
   REDIRECT,
@@ -101,3 +101,5 @@ module.exports = {
   UNAVAILABLE,
   DEADLINE_EXCEEDED,
 };
+
+export default responseStatus;

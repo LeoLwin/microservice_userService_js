@@ -6,6 +6,7 @@ const listBlogs = async (current = 1, limit = 10) => {
   const perPage = Math.max(Number(limit), 1);
 
   const blogs = await repo.findAll();
+  console.log("Blogs : ", blogs);
   const total = blogs.length;
 
   if (total === 0) {
@@ -14,6 +15,7 @@ const listBlogs = async (current = 1, limit = 10) => {
 
   const startIndex = (page - 1) * perPage;
   const paginatedBlogs = blogs.slice(startIndex, startIndex + perPage);
+  console.l
 
   const data = {
     list: paginatedBlogs,

@@ -12,7 +12,7 @@ console.log('Redis Config:', {
 });
 
 const theBroker = new ServiceBroker({
-  namespace: 'BlogErina',
+  namespace: 'BlogMaKyawt',
   nodeID: 'blogServices' + Math.floor(Math.random() * 10000),
   logLevel: 'info',
   transporter: {

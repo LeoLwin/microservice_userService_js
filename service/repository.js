@@ -1,51 +1,126 @@
-const mongoose = require('mongoose');
-const { Blog } = require('../model/blogModel');
-const Response = require('../helper/responseStatus');
+const pool = require('../helper/dbConnect');
 
-const countBlogs = async () => Blog.countDocuments();
-
-const findBlogs = async (page, perPage) => {
-  return Blog.find()
-    .skip((page - 1) * perPage)
-    .limit(perPage)
-    .sort({ createdAt: -1 });
-};
-
-const creatBlog = async (title, content, session) => {
-  const blog = new Blog({ title, content });
-  return blog.save({ session });
-};
-
-const updateBlog = async (id, title, content, session) => {
-  return Blog.findByIdAndUpdate(id, { title, content }, { new: true, session });
-};
-
-const deleteBlog = async (id, session) => {
-  return Blog.findByIdAndDelete(id, { session });
-};
-
-const runInTransaction = async (operations) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
+const findAll = async () => {
+  let connection;
   try {
-    const result = await operations(session);
-    await session.commitTransaction();
-    session.endSession();
-    return result;
+    connection = await pool.getConnection();
+    const [rows] = await connection.query('SELECT * FROM blogs ORDER BY id DESC');
+    return rows;
   } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
-    const errorMessage = err instanceof Error ? err.message : String(err);
-    return Response.UNKNOWN(errorMessage);
+    console.error('findAll error:', err.message);
+    throw err;
+  } finally {
+    if (connection) connection.release();
   }
 };
 
+const findById = async (id) => {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    const [rows] = await connection.query('SELECT * FROM blogs WHERE id = ?', [Number(id)]);
+    return rows[0] ?? null;
+  } catch (err) {
+    console.error('findById error:', err.message);
+    throw err;
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+const create = async (payload = {}) => {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [result] = await connection.query(
+      'INSERT INTO blogs (title, content, image) VALUES (?, ?, ?)',
+      [payload.title ?? '', payload.content ?? '', payload.image ?? null]
+    );
+
+    const [rows] = await connection.query('SELECT * FROM blogs WHERE id = ?', [result.insertId]);
+    await connection.commit();
+    return rows[0] ?? null;
+  } catch (err) {
+    if (connection) await connection.rollback();
+    console.error('create error:', err.message);
+    throw err;
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+const update = async (id, payload = {}) => {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [existingRows] = await connection.query('SELECT * FROM blogs WHERE id = ?', [Number(id)]);
+    const existing = existingRows[0];
+
+    if (!existing) {
+      await connection.rollback();
+      return null;
+    }
+
+    const title = payload.title ?? existing.title;
+    const content = payload.content ?? existing.content;
+    const image = payload.image ?? existing.image;
+
+    await connection.query(
+      'UPDATE blogs SET title = ?, content = ?, image = ? WHERE id = ?',
+      [title, content, image, Number(id)]
+    );
+
+    const [updatedRows] = await connection.query('SELECT * FROM blogs WHERE id = ?', [Number(id)]);
+    await connection.commit();
+    return updatedRows[0] ?? null;
+  } catch (err) {
+    if (connection) await connection.rollback();
+    console.error('update error:', err.message);
+    throw err;
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+const remove = async (id) => {
+  let connection;
+  try {
+    connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    const [existingRows] = await connection.query('SELECT * FROM blogs WHERE id = ?', [Number(id)]);
+    const existing = existingRows[0];
+
+    if (!existing) {
+      await connection.rollback();
+      return null;
+    }
+
+    await connection.query('DELETE FROM blogs WHERE id = ?', [Number(id)]);
+    await connection.commit();
+    return existing;
+  } catch (err) {
+    if (connection) await connection.rollback();
+    console.error('remove error:', err.message);
+    throw err;
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+const test = () => {
+  console.log('This is test function in blog.repository.js');
+};
+
 module.exports = {
-  countBlogs,
-  findBlogs,
-  creatBlog,
-  updateBlog,
-  deleteBlog,
-  runInTransaction,
+  findAll,
+  findById,
+  create,
+  update,
+  remove,
+  test,
 };

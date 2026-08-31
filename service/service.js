@@ -1,15 +1,13 @@
-const { ServiceBroker } = require('moleculer');
 const logic = require('./logic');
 const Response = require('../helper/responseStatus');
-const { Blog } = require('../model/blogModel');
 
 const blogService = {
   name: 'blog',
   actions: {
     list: {
       params: {
-        current: 'number',
-        limit: 'number',
+        current: { type: 'number', optional: true },
+        limit: { type: 'number', optional: true },
       },
       async handler(ctx) {
         try {
@@ -35,13 +33,7 @@ const blogService = {
             return Response.INVALID_ARGUMENT('ID parameter is required');
           }
 
-          const blog = await Blog.findById(id);
-
-          if (!blog) {
-            return Response.NOT_FOUND('Blog not found');
-          }
-
-          return Response.OK(blog, 'Blog fetched successfully');
+          return await logic.getBlog(id);
         } catch (error) {
           console.error('Error fetching blog:', error.message);
           return Response.UNKNOWN(error.message);
@@ -53,17 +45,15 @@ const blogService = {
       params: {
         title: 'string',
         content: 'string',
+        image: { type: 'string', optional: true },
       },
       async handler(ctx) {
-        const { title, content } = ctx.params;
-
         try {
-          const result = await logic.createBlog(title, content);
-          console.log('Result 98', result);
-          return result;
+          const { title, content, image } = ctx.params;
+          return await logic.createBlog({ title, content, image });
         } catch (error) {
           console.error('Error creating blog:', error.message);
-          return { message: 'Error creating blog', error: error.message };
+          return Response.UNKNOWN(error.message);
         }
       },
     },
@@ -73,17 +63,12 @@ const blogService = {
         id: 'string',
         title: { type: 'string', optional: true },
         content: { type: 'string', optional: true },
+        image: { type: 'string', optional: true },
       },
       async handler(ctx) {
         try {
           const { id, ...updates } = ctx.params;
-          const blog = await Blog.findByIdAndUpdate(id, updates, { new: true });
-
-          if (!blog) {
-            return Response.NOT_FOUND('Blog not found');
-          }
-
-          return Response.OK(blog, 'Blog updated successfully');
+          return await logic.updateBlog(id, updates);
         } catch (error) {
           console.error('Error updating blog:', error.message);
           return Response.UNKNOWN(error.message);
@@ -98,13 +83,7 @@ const blogService = {
       async handler(ctx) {
         try {
           const { id } = ctx.params;
-          const blog = await Blog.findByIdAndDelete(id);
-
-          if (!blog) {
-            return Response.NOT_FOUND('Blog not found');
-          }
-
-          return Response.OK(blog, 'Blog deleted successfully');
+          return await logic.deleteBlog(id);
         } catch (error) {
           console.error('Error deleting blog:', error.message);
           return Response.UNKNOWN(error.message);

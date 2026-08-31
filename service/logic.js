@@ -5,41 +5,73 @@ const listBlogs = async (current = 1, limit = 10) => {
   const page = Math.max(Number(current), 1);
   const perPage = Math.max(Number(limit), 1);
 
-  const total = await repo.countBlogs();
+  const blogs = await repo.findAll();
+  const total = blogs.length;
 
   if (total === 0) {
     return Response.NOT_FOUND('No blogs found');
   }
 
-  const blogs = await repo.findBlogs(page, perPage);
+  const startIndex = (page - 1) * perPage;
+  const paginatedBlogs = blogs.slice(startIndex, startIndex + perPage);
 
   const data = {
-    by: blogs,
+    list: paginatedBlogs,
     pagination: {
       current: page,
       limit: perPage,
-      rowsPerPage: Math.ceil(total / perPage),
-      total,
+      totalPages: Math.ceil(total / perPage),
+      totalRows: total,
     },
   };
 
   return Response.OK(data, 'Blogs fetched successfully');
 };
 
-const createBlog = async (title, content) => {
-  return repo.runInTransaction(async (session) => {
-    const blog = await repo.creatBlog(title, content, session);
-    console.log('Created Blog :', blog);
+const getBlog = async (id) => {
+  const blog = await repo.findById(id);
 
-    if (!blog || !blog._id) {
-      return Response.NOT_IMPLEMENTED('Blog could not be created');
-    }
+  if (!blog) {
+    return Response.NOT_FOUND('Blog not found');
+  }
 
-    return Response.OK(blog, 'Blog created successfully');
-  });
+  return Response.OK(blog, 'Blog fetched successfully');
+};
+
+const createBlog = async (payload = {}) => {
+  const blog = await repo.create(payload);
+
+  if (!blog) {
+    return Response.NOT_IMPLEMENTED('Blog could not be created');
+  }
+
+  return Response.OK(blog, 'Blog created successfully');
+};
+
+const updateBlog = async (id, payload = {}) => {
+  const blog = await repo.update(id, payload);
+
+  if (!blog) {
+    return Response.NOT_FOUND('Blog not found');
+  }
+
+  return Response.OK(blog, 'Blog updated successfully');
+};
+
+const deleteBlog = async (id) => {
+  const blog = await repo.remove(id);
+
+  if (!blog) {
+    return Response.NOT_FOUND('Blog not found');
+  }
+
+  return Response.OK(blog, 'Blog deleted successfully');
 };
 
 module.exports = {
   listBlogs,
+  getBlog,
   createBlog,
+  updateBlog,
+  deleteBlog,
 };

@@ -16,6 +16,7 @@
     "moleculer": "^0.14.35",
     "mongodb": "^7.0.0",
     "mongoose": "^8.19.3",
+    "mysql2": "^3.24.2",
     "nodemon": "^3.1.10"
   }
 }
